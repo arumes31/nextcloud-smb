@@ -45,5 +45,6 @@ jobs:
         with:
           image-names: ${{ github.event.repository.name }}
           cut-off: '60 days ago UTC'
-          account-type: personal # Change to 'org' if this repository is in an organization
+          account-type: org
+          org-name: ${{ github.repository_owner }}
           token: ${{ secrets.GITHUB_TOKEN }}
