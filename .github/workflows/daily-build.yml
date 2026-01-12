@@ -25,6 +25,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Get current date for tagging
+        id: date
+        run: echo "IMAGE_DATE=$(date +'%d%m%Y')" >> $GITHUB_ENV
+
       - name: Build and push Docker image
         id: build_and_push
         uses: docker/build-push-action@v5
@@ -34,10 +38,12 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}:production-smb
             ghcr.io/${{ github.repository }}:${{ github.sha }}
+            ghcr.io/${{ github.repository }}:production-smb-${{ env.IMAGE_DATE }}
 
       - name: Cleanup old images
         uses: snok/container-retention-policy@v2
         with:
           image-names: ${{ github.event.repository.name }}
-          keep-days: 60
+          cut-off: '60 days ago UTC'
+          account-type: personal # Change to 'org' if this repository is in an organization
           token: ${{ secrets.GITHUB_TOKEN }}
