@@ -35,11 +35,27 @@ jobs:
           
           echo "Listing versions for package '$PACKAGE_NAME' owned by '$OWNER'"
           
-          # Get all versions, extracting id, created_at, and tags.
-          # The || true is to prevent the script from exiting if no versions are found (which returns a non-zero exit code from gh api).
-          VERSIONS=$(gh api "users/$OWNER/packages/container/$PACKAGE_NAME/versions" --jq '.[] | {id: .id, created_at: .created_at, tags: .metadata.container.tags}' || true)
+          # We need to handle the case where the package does not exist yet (a 404).
+          # gh api returns a non-zero exit code and prints an error JSON to stdout in this case.
+          # We capture stdout and check the exit code. The jq query now wraps the output in an array.
+          VERSIONS_OR_ERROR=$(gh api "users/$OWNER/packages/container/$PACKAGE_NAME/versions" --jq '[.[] | {id: .id, created_at: .created_at, tags: .metadata.container.tags}]' 2>&1)
+          GH_EXIT_CODE=$?
+
+          # If exit code is not 0, check if it's the expected "Package not found" error.
+          if [ $GH_EXIT_CODE -ne 0 ]; then
+            if echo "$VERSIONS_OR_ERROR" | grep -q "Package not found"; then
+              echo "Package '$PACKAGE_NAME' not found. This is expected if it has not been published yet. Nothing to clean up."
+              exit 0
+            else
+              echo "An unexpected error occurred while fetching package versions:"
+              echo "$VERSIONS_OR_ERROR"
+              exit 1
+            fi
+          fi
           
-          if [ -z "$VERSIONS" ]; then
+          VERSIONS=$VERSIONS_OR_ERROR
+
+          if [ -z "$VERSIONS" ] || [ "$VERSIONS" == "[]" ]; then
             echo "No versions found for package. Nothing to clean up."
             exit 0
           fi
@@ -47,9 +63,9 @@ jobs:
           CUTOFF_DATE=$(date -d "60 days ago" -u +"%Y-%m-%dT%H:%M:%SZ")
           echo "Cutoff date: $CUTOFF_DATE"
           
-          # Use jq to filter for versions that are older than the cutoff date AND do not have the 'production-smb' tag.
-          OLD_VERSIONS_TO_DELETE=$(echo "$VERSIONS" | jq -s --arg cutoff_date "$CUTOFF_DATE" 'map(select(.created_at < $cutoff_date and (any(.tags[]; . == "production-smb") | not)))')
-          
+          # The VERSIONS variable is now a single JSON array string.
+          OLD_VERSIONS_TO_DELETE=$(echo "$VERSIONS" | jq --arg cutoff_date "$CUTOFF_DATE" '. | map(select(.created_at < $cutoff_date and (any(.tags[]; . == "production-smb") | not)))')
+
           if [ -z "$OLD_VERSIONS_TO_DELETE" ] || [ "$(echo "$OLD_VERSIONS_TO_DELETE" | jq 'length')" -eq 0 ]; then
             echo "No old versions to delete."
             exit 0
@@ -58,7 +74,6 @@ jobs:
           echo "The following old versions will be deleted:"
           echo "$OLD_VERSIONS_TO_DELETE" | jq .
           
-          # Loop over the versions to delete and delete them one by one.
           echo "$OLD_VERSIONS_TO_DELETE" | jq -r '.[].id' | while read -r VERSION_ID; do
             echo "Deleting version with ID: $VERSION_ID"
             gh api --method DELETE "users/$OWNER/packages/container/$PACKAGE_NAME/versions/$VERSION_ID" --silent
