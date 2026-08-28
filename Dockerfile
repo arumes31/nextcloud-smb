@@ -48,7 +48,7 @@ RUN set -eux; \
 COPY --from=extension-builder /usr/local/etc/php/conf.d/docker-php-ext-smbclient.ini /usr/local/etc/php/conf.d/docker-php-ext-smbclient.ini
 COPY --from=extension-builder /usr/local/lib/php/extensions/ /usr/local/lib/php/extensions/
 
-USER www-data
+USER 33:33
 EXPOSE 8080
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=90s --retries=3 \
