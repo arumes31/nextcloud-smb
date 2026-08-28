@@ -9,7 +9,7 @@ grep -qi "smbclient support => enabled" <<<"${php_info}"
 docker run --rm "${image}" smbclient --version | grep -q '^Version '
 
 configured_user="$(docker image inspect "${image}" --format '{{.Config.User}}')"
-test "${configured_user}" = "www-data"
+test "${configured_user}" = "33:33"
 
 configured_port="$(docker image inspect "${image}" --format '{{json .Config.ExposedPorts}}')"
 grep -q '8080/tcp' <<<"${configured_port}"
