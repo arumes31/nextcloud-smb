@@ -1,12 +1,12 @@
 # syntax=docker/dockerfile:1.20
 
-ARG NEXTCLOUD_VERSION=34.0.3-apache
-ARG NEXTCLOUD_DIGEST=sha256:8e5f49801db0cf4659b3089ce1917728023bb8cba7f93731f2abbdfe3a18df0a
+ARG NEXTCLOUD_VERSION=34.0.4-apache
+ARG NEXTCLOUD_DIGEST=sha256:0e5688ba0988b9112cf03f9c6bab53eccb466d278435f6596f16c1f25acacf74
 
 FROM nextcloud:${NEXTCLOUD_VERSION}@${NEXTCLOUD_DIGEST} AS extension-builder
 
 ARG SMBCLIENT_EXTENSION_VERSION=1.2.0dev
-ARG SAMBA_VERSION=2:4.22.10+dfsg-0+deb13u2
+ARG SAMBA_VERSION=2:4.22.11+dfsg-0+deb13u1
 
 RUN set -eux; \
     apt-get update; \
@@ -19,9 +19,9 @@ RUN set -eux; \
 
 FROM nextcloud:${NEXTCLOUD_VERSION}@${NEXTCLOUD_DIGEST}
 
-ARG SAMBA_VERSION=2:4.22.10+dfsg-0+deb13u2
-ARG OPENSSL_VERSION=3.5.7-1~deb13u2
-ARG LINUX_LIBC_DEV_VERSION=6.12.105-1
+ARG SAMBA_VERSION=2:4.22.11+dfsg-0+deb13u1
+ARG OPENSSL_VERSION=3.5.7-1~deb13u3
+ARG LINUX_LIBC_DEV_VERSION=6.12.111-1
 
 LABEL org.opencontainers.image.source="https://github.com/arumes31/nextcloud-smb" \
       org.opencontainers.image.description="Hardened Nextcloud image with SMB support" \
