@@ -35,6 +35,17 @@ image instead of reusing a cached base image.
 - CI verifies the extension, CLI, non-root runtime, health endpoint, and bounded
   failure behavior before scanning the resulting image for high/critical issues.
 - The daily publisher emits amd64/arm64 images, SBOM and provenance attestations.
+- Publishing runs daily or manually through the `Publish image` workflow; pushes
+  to `main` run CI but do not publish an image. To publish the current `main`:
+
+  ```console
+  gh workflow run publish.yml --repo arumes31/nextcloud-smb --ref main
+  ```
+
+- A separate keepalive job on scheduled and manual publishing runs re-enables
+  both scheduled workflows through the GitHub API, even if the image build fails.
+  This is a workaround for GitHub's inactivity timeout; if publishing is already
+  disabled, enable the workflow manually first.
 - Dependabot proposes Docker and GitHub Actions updates. Keep the Nextcloud base
   on `production`; review updates to the remaining pinned dependencies promptly.
 
