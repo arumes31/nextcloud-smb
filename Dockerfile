@@ -1,6 +1,8 @@
 # syntax=docker/dockerfile:1.20
 
-FROM nextcloud:production AS extension-builder
+ARG NEXTCLOUD_TAG=production
+
+FROM nextcloud:${NEXTCLOUD_TAG} AS extension-builder
 
 ARG SMBCLIENT_EXTENSION_VERSION=1.2.0dev
 ARG SAMBA_VERSION=2:4.22.11+dfsg-0+deb13u1
@@ -14,7 +16,7 @@ RUN set -eux; \
     php --ri smbclient; \
     rm -rf /var/lib/apt/lists/* /tmp/pear
 
-FROM nextcloud:production
+FROM nextcloud:${NEXTCLOUD_TAG}
 
 ARG SAMBA_VERSION=2:4.22.11+dfsg-0+deb13u1
 ARG OPENSSL_VERSION=3.5.7-1~deb13u3

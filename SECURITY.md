@@ -2,8 +2,10 @@
 
 ## Supported versions
 
-Only the current `production-smb` image is supported. Rebuilds are published
-daily so upstream Nextcloud and Debian fixes can be adopted quickly.
+The current `production-smb` and `33-smb` images are supported. They follow the
+upstream production channel and Nextcloud 33 Apache releases, respectively.
+Rebuilds are published daily and on pushes to `main` so upstream Nextcloud and
+Debian fixes can be adopted quickly.
 
 ## Reporting a vulnerability
 
