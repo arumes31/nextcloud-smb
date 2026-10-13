@@ -40,6 +40,8 @@ RUN set -eux; \
         /var/run/apache2 \
         /var/www/html; \
     chown -R www-data:www-data /var/www/html; \
+    install -o www-data -g www-data -m 0600 /dev/null \
+        /usr/local/etc/php/conf.d/redis-session.ini; \
     rm -rf /var/lib/apt/lists/*
 
 COPY --from=extension-builder /usr/local/etc/php/conf.d/docker-php-ext-smbclient.ini /usr/local/etc/php/conf.d/docker-php-ext-smbclient.ini

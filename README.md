@@ -18,6 +18,11 @@ The image listens on port 8080 and runs as `www-data` (UID/GID 33). When using
 a bind mount, make the target writable by UID 33. The standard Nextcloud image
 environment variables and volumes remain supported.
 
+When `REDIS_HOST` is set, the upstream entrypoint configures Redis sessions in a
+pre-created `redis-session.ini` owned by UID 33 with mode `0600`. The PHP
+configuration directory remains root-owned; only this session file is writable
+by the runtime user.
+
 ## Build
 
 ```console
@@ -32,8 +37,9 @@ image instead of reusing a cached base image.
 - The Nextcloud base tracks `nextcloud:production` without a version or digest pin.
 - The PECL extension release, Debian packages, actions, and scanners remain
   version or digest pinned.
-- CI verifies the extension, CLI, non-root runtime, health endpoint, and bounded
-  failure behavior before scanning the resulting image for high/critical issues.
+- CI verifies the extension, CLI, non-root runtime, startup with and without
+  Redis session configuration, health endpoint, and bounded failure behavior
+  before scanning the resulting image for high/critical issues.
 - The daily publisher emits amd64/arm64 images, SBOM and provenance attestations.
 - Publishing runs on every push to `main`, daily, and manually through the
   `Publish image` workflow. To publish the current `main` manually:
