@@ -35,8 +35,8 @@ image instead of reusing a cached base image.
 - CI verifies the extension, CLI, non-root runtime, health endpoint, and bounded
   failure behavior before scanning the resulting image for high/critical issues.
 - The daily publisher emits amd64/arm64 images, SBOM and provenance attestations.
-- Publishing runs daily or manually through the `Publish image` workflow; pushes
-  to `main` run CI but do not publish an image. To publish the current `main`:
+- Publishing runs on every push to `main`, daily, and manually through the
+  `Publish image` workflow. To publish the current `main` manually:
 
   ```console
   gh workflow run publish.yml --repo arumes31/nextcloud-smb --ref main
