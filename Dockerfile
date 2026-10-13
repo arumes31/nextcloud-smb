@@ -1,9 +1,6 @@
 # syntax=docker/dockerfile:1.20
 
-ARG NEXTCLOUD_VERSION=34.0.4-apache
-ARG NEXTCLOUD_DIGEST=sha256:0e5688ba0988b9112cf03f9c6bab53eccb466d278435f6596f16c1f25acacf74
-
-FROM nextcloud:${NEXTCLOUD_VERSION}@${NEXTCLOUD_DIGEST} AS extension-builder
+FROM nextcloud:production AS extension-builder
 
 ARG SMBCLIENT_EXTENSION_VERSION=1.2.0dev
 ARG SAMBA_VERSION=2:4.22.11+dfsg-0+deb13u1
@@ -17,7 +14,7 @@ RUN set -eux; \
     php --ri smbclient; \
     rm -rf /var/lib/apt/lists/* /tmp/pear
 
-FROM nextcloud:${NEXTCLOUD_VERSION}@${NEXTCLOUD_DIGEST}
+FROM nextcloud:production
 
 ARG SAMBA_VERSION=2:4.22.11+dfsg-0+deb13u1
 ARG OPENSSL_VERSION=3.5.7-1~deb13u3
