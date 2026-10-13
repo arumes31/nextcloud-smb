@@ -18,9 +18,17 @@ concurrency:
 
 jobs:
   container:
-    name: Build and test container
+    name: Build and test (${{ matrix.nextcloud_tag }})
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - nextcloud_tag: production
+            expected_major: ""
+          - nextcloud_tag: 33-apache
+            expected_major: "33"
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.0
@@ -43,13 +51,16 @@ jobs:
         with:
           context: .
           pull: true
+          build-args: NEXTCLOUD_TAG=${{ matrix.nextcloud_tag }}
           load: true
           tags: nextcloud-smb:test
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=ci-${{ matrix.nextcloud_tag }}
+          cache-to: type=gha,mode=max,scope=ci-${{ matrix.nextcloud_tag }}
 
       - name: Verify runtime behavior
-        run: tests/container-test.sh nextcloud-smb:test
+        env:
+          EXPECTED_NEXTCLOUD_MAJOR: ${{ matrix.expected_major }}
+        run: tests/container-test.sh nextcloud-smb:test "$EXPECTED_NEXTCLOUD_MAJOR"
 
       - name: Scan image
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
