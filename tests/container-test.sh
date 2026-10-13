@@ -2,14 +2,6 @@
 set -euo pipefail
 
 image="${1:-nextcloud-smb:test}"
-expected_major="${2:-}"
-
-if [[ -n "${expected_major}" ]]; then
-    # shellcheck disable=SC2016
-    actual_major="$(docker run --rm "${image}" php -r 'require "/usr/src/nextcloud/version.php"; echo $OC_Version[0];')"
-    echo "Checking Nextcloud major: expected ${expected_major}, got ${actual_major}"
-    test "${actual_major}" = "${expected_major}"
-fi
 
 php_info="$(docker run --rm "${image}" php --ri smbclient)"
 grep -qi "smbclient support => enabled" <<<"${php_info}"

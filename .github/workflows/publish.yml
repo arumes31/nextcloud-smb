@@ -35,19 +35,9 @@ jobs:
           gh workflow enable ci.yml
 
   publish:
-    name: Build and publish (${{ matrix.nextcloud_tag }})
+    name: Build and publish
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - nextcloud_tag: production
-            image_tag: production-smb
-            sha_prefix: sha-
-          - nextcloud_tag: 33-apache
-            image_tag: 33-smb
-            sha_prefix: 33-sha-
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.0
@@ -71,9 +61,9 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
-            type=raw,value=${{ matrix.image_tag }}
-            type=sha,prefix=${{ matrix.sha_prefix }}
-            type=schedule,pattern=${{ matrix.image_tag }}-{{date 'YYYYMMDD'}}
+            type=raw,value=production-smb
+            type=sha
+            type=schedule,pattern=production-smb-{{date 'YYYYMMDD'}}
 
       - name: Build and push image
         id: push
@@ -81,13 +71,12 @@ jobs:
         with:
           context: .
           pull: true
-          build-args: NEXTCLOUD_TAG=${{ matrix.nextcloud_tag }}
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=publish-${{ matrix.nextcloud_tag }}
-          cache-to: type=gha,mode=max,scope=publish-${{ matrix.nextcloud_tag }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           sbom: true
           provenance: mode=max
 
@@ -98,20 +87,12 @@ jobs:
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
 
-  cleanup:
-    name: Remove old images
-    needs: publish
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      packages: write
-    steps:
       - name: Remove old untagged images
         uses: dataaxiom/ghcr-cleanup-action@d52806a0dc70b430571a37da1fde39733ffd640f # v1.2.2
         with:
           package: ${{ github.event.repository.name }}
           delete-untagged: true
-          delete-tags: production-smb-*,33-smb-*
-          exclude-tags: production-smb,33-smb
+          delete-tags: production-smb-*
+          exclude-tags: production-smb
           older-than: 60 days
           token: ${{ secrets.GITHUB_TOKEN }}
