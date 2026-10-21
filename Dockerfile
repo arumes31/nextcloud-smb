@@ -18,7 +18,7 @@ FROM nextcloud:production
 
 ARG SAMBA_VERSION=2:4.22.11+dfsg-0+deb13u1
 ARG OPENSSL_VERSION=3.5.7-1~deb13u3
-ARG LINUX_LIBC_DEV_VERSION=6.12.111-1
+ARG LINUX_LIBC_DEV_VERSION=6.12.113-1
 
 LABEL org.opencontainers.image.source="https://github.com/arumes31/nextcloud-smb" \
       org.opencontainers.image.description="Hardened Nextcloud image with SMB support" \
