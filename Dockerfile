@@ -19,6 +19,7 @@ FROM nextcloud:production
 ARG SAMBA_VERSION=2:4.22.11+dfsg-0+deb13u1
 ARG OPENSSL_VERSION=3.5.7-1~deb13u3
 ARG LINUX_LIBC_DEV_VERSION=6.12.113-1
+ARG BROTLI_VERSION=1.1.0-2+deb13u1
 
 LABEL org.opencontainers.image.source="https://github.com/arumes31/nextcloud-smb" \
       org.opencontainers.image.description="Hardened Nextcloud image with SMB support" \
@@ -27,6 +28,7 @@ LABEL org.opencontainers.image.source="https://github.com/arumes31/nextcloud-smb
 RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
+        libbrotli1="${BROTLI_VERSION}" \
         libssl3t64="${OPENSSL_VERSION}" \
         linux-libc-dev="${LINUX_LIBC_DEV_VERSION}" \
         openssl="${OPENSSL_VERSION}" \
