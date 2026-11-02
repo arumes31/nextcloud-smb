@@ -1,6 +1,8 @@
 # syntax=docker/dockerfile:1.20
 
-FROM nextcloud:production AS extension-builder
+ARG NEXTCLOUD_IMAGE=nextcloud:production
+
+FROM ${NEXTCLOUD_IMAGE} AS extension-builder
 
 ARG SMBCLIENT_EXTENSION_VERSION=1.2.0dev
 ARG SAMBA_VERSION=2:4.22.11+dfsg-0+deb13u1
@@ -14,12 +16,13 @@ RUN set -eux; \
     php --ri smbclient; \
     rm -rf /var/lib/apt/lists/* /tmp/pear
 
-FROM nextcloud:production
+FROM ${NEXTCLOUD_IMAGE}
 
 ARG SAMBA_VERSION=2:4.22.11+dfsg-0+deb13u1
 ARG OPENSSL_VERSION=3.5.7-1~deb13u3
 ARG LINUX_LIBC_DEV_VERSION=6.12.113-1
 ARG BROTLI_VERSION=1.1.0-2+deb13u1
+ARG IMAGEMAGICK_VERSION=8:7.1.1.43+dfsg1-1+deb13u13
 
 LABEL org.opencontainers.image.source="https://github.com/arumes31/nextcloud-smb" \
       org.opencontainers.image.description="Hardened Nextcloud image with SMB support" \
@@ -28,7 +31,11 @@ LABEL org.opencontainers.image.source="https://github.com/arumes31/nextcloud-smb
 RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
+        imagemagick-7-common="${IMAGEMAGICK_VERSION}" \
         libbrotli1="${BROTLI_VERSION}" \
+        libmagickcore-7.q16-10="${IMAGEMAGICK_VERSION}" \
+        libmagickcore-7.q16-10-extra="${IMAGEMAGICK_VERSION}" \
+        libmagickwand-7.q16-10="${IMAGEMAGICK_VERSION}" \
         libssl3t64="${OPENSSL_VERSION}" \
         linux-libc-dev="${LINUX_LIBC_DEV_VERSION}" \
         openssl="${OPENSSL_VERSION}" \
