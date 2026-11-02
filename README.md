@@ -3,8 +3,9 @@
 A hardened Nextcloud Apache image with the PHP `smbclient`
 extension and Samba client installed for external SMB storage.
 
-Both build stages use the moving `nextcloud:production` tag. CI and the daily
-publisher pull the current base image on every build.
+Both build stages use the moving `nextcloud:production` tag. CI resolves it to
+one digest for both stages and the upstream vulnerability comparison. CI and the
+daily publisher pull the current base image on every build.
 
 ## Run
 
@@ -34,12 +35,16 @@ image instead of reusing a cached base image.
 
 ## Security and maintenance
 
-- The Nextcloud base tracks `nextcloud:production` without a version or digest pin.
+- The default Nextcloud base tracks the moving `nextcloud:production` tag.
 - The PECL extension release, Debian packages, actions, and scanners remain
   version or digest pinned.
 - CI verifies the extension, CLI, non-root runtime, startup with and without
   Redis session configuration, health endpoint, and bounded failure behavior
   before scanning the resulting image for high/critical issues.
+- CVEs inherited from the exact upstream image are reported in the CI summary
+  and allowed, preserving Nextcloud's signed core. Fixable high/critical CVEs
+  added by this image still fail CI. Matching includes the package version and
+  library location; high/critical secret findings and scanner errors also fail.
 - The daily publisher emits amd64/arm64 images, SBOM and provenance attestations.
 - Publishing runs on every push to `main`, daily, and manually through the
   `Publish image` workflow. To publish the current `main` manually:

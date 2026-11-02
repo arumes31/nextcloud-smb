@@ -37,8 +37,17 @@ jobs:
         with:
           scandir: ./tests
 
+      - name: Test vulnerability policy
+        run: python3 -m unittest discover -s tests -p 'test_*.py'
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - name: Resolve upstream image
+        id: base
+        run: |
+          digest="$(docker buildx imagetools inspect nextcloud:production --format '{{.Manifest.Digest}}')"
+          echo "image=nextcloud:production@${digest}" >> "$GITHUB_OUTPUT"
 
       - name: Build test image
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
@@ -47,6 +56,7 @@ jobs:
           pull: true
           load: true
           tags: nextcloud-smb:test
+          build-args: NEXTCLOUD_IMAGE=${{ steps.base.outputs.image }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -57,10 +67,32 @@ jobs:
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: nextcloud-smb:test
-          format: table
-          exit-code: "1"
+          format: json
+          output: trivy-image.json
+          exit-code: "0"
           ignore-unfixed: true
           severity: HIGH,CRITICAL
+
+      - name: Scan upstream image
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        env:
+          TRIVY_SKIP_DB_UPDATE: "true"
+        with:
+          image-ref: ${{ steps.base.outputs.image }}
+          format: json
+          output: trivy-base.json
+          exit-code: "0"
+          ignore-unfixed: true
+          severity: HIGH,CRITICAL
+          skip-setup-trivy: true
+          cache: false
+
+      - name: Reject vulnerabilities introduced by this image
+        env:
+          BASE_IMAGE: ${{ steps.base.outputs.image }}
+        run: |
+          printf 'Upstream base: `%s`\n\n' "$BASE_IMAGE" >> "$GITHUB_STEP_SUMMARY"
+          python3 tests/vulnerability_gate.py trivy-base.json trivy-image.json | tee -a "$GITHUB_STEP_SUMMARY"
 
   dockerfile-security:
     name: Dockerfile security analysis
