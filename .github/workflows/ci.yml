@@ -85,6 +85,7 @@ jobs:
           ignore-unfixed: true
           severity: HIGH,CRITICAL
           skip-setup-trivy: true
+          cache: false
 
       - name: Reject vulnerabilities introduced by this image
         env:
