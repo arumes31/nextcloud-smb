@@ -3,6 +3,8 @@ name: Dependency Review
 on:
   pull_request:
     branches: [main]
+    # GitHub Actions are the only dependency manifests the review action understands here.
+    paths: ['.github/**']
 
 permissions:
   contents: read

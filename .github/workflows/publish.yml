@@ -3,6 +3,10 @@ name: Publish image
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - '**/*.md'
+      - 'LICENSE'
+      - '.github/CODEOWNERS'
   schedule:
     - cron: "0 2 * * *"
   workflow_dispatch:

@@ -46,7 +46,8 @@ image instead of reusing a cached base image.
   added by this image still fail CI. Matching includes the package version and
   library location; high/critical secret findings and scanner errors also fail.
 - The daily publisher emits amd64/arm64 images, SBOM and provenance attestations.
-- Publishing runs on every push to `main`, daily, and manually through the
+- Publishing runs on every push to `main` (except documentation-only changes:
+  Markdown, `LICENSE`, `.github/CODEOWNERS`), daily, and manually through the
   `Publish image` workflow. To publish the current `main` manually:
 
   ```console
