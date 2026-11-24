@@ -5,12 +5,12 @@ ARG NEXTCLOUD_IMAGE=nextcloud:production
 FROM ${NEXTCLOUD_IMAGE} AS extension-builder
 
 ARG SMBCLIENT_EXTENSION_VERSION=1.2.0dev
-ARG SAMBA_VERSION=2:4.22.11+dfsg-0+deb13u1
 
+# Debian packages stay unpinned: security updates remove pinned versions from the mirror.
+# hadolint ignore=DL3008
 RUN set -eux; \
     apt-get update; \
-    apt-get install -y --no-install-recommends \
-        libsmbclient-dev="${SAMBA_VERSION}"; \
+    apt-get install -y --no-install-recommends libsmbclient-dev; \
     pecl install "channel://pecl.php.net/smbclient-${SMBCLIENT_EXTENSION_VERSION}"; \
     docker-php-ext-enable smbclient; \
     php --ri smbclient; \
@@ -18,29 +18,18 @@ RUN set -eux; \
 
 FROM ${NEXTCLOUD_IMAGE}
 
-ARG SAMBA_VERSION=2:4.22.11+dfsg-0+deb13u1
-ARG OPENSSL_VERSION=3.5.7-1~deb13u3
-ARG LINUX_LIBC_DEV_VERSION=6.12.116-1
-ARG BROTLI_VERSION=1.1.0-2+deb13u1
-ARG IMAGEMAGICK_VERSION=8:7.1.1.43+dfsg1-1+deb13u14
-
 LABEL org.opencontainers.image.source="https://github.com/arumes31/nextcloud-smb" \
       org.opencontainers.image.description="Hardened Nextcloud image with SMB support" \
       org.opencontainers.image.licenses="MIT"
 
+# Take every Debian update, even before upstream rebuilds; CI blocks any fixable OS CVE left.
+# A new APT_REFRESH value invalidates the cached layer so the upgrade really runs.
+ARG APT_REFRESH=
+# hadolint ignore=DL3008
 RUN set -eux; \
     apt-get update; \
-    apt-get install -y --no-install-recommends \
-        imagemagick-7-common="${IMAGEMAGICK_VERSION}" \
-        libbrotli1="${BROTLI_VERSION}" \
-        libmagickcore-7.q16-10="${IMAGEMAGICK_VERSION}" \
-        libmagickcore-7.q16-10-extra="${IMAGEMAGICK_VERSION}" \
-        libmagickwand-7.q16-10="${IMAGEMAGICK_VERSION}" \
-        libssl3t64="${OPENSSL_VERSION}" \
-        linux-libc-dev="${LINUX_LIBC_DEV_VERSION}" \
-        openssl="${OPENSSL_VERSION}" \
-        openssl-provider-legacy="${OPENSSL_VERSION}" \
-        smbclient="${SAMBA_VERSION}"; \
+    apt-get upgrade -y --no-install-recommends; \
+    apt-get install -y --no-install-recommends smbclient; \
     sed -ri 's!^Listen 80$!Listen 8080!' /etc/apache2/ports.conf; \
     sed -ri 's!<VirtualHost \*:80>!<VirtualHost *:8080>!' /etc/apache2/sites-available/000-default.conf; \
     install -d -o www-data -g www-data \
