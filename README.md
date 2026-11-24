@@ -36,14 +36,16 @@ image instead of reusing a cached base image.
 ## Security and maintenance
 
 - The default Nextcloud base tracks the moving `nextcloud:production` tag.
-- The PECL extension release, Debian packages, actions, and scanners remain
-  version or digest pinned.
+- Debian packages are not pinned: every build runs `apt-get upgrade`, so
+  Debian security fixes ship even before upstream rebuilds its image. The PECL
+  extension release, actions, and scanners remain version or digest pinned.
 - CI verifies the extension, CLI, non-root runtime, startup with and without
   Redis session configuration, health endpoint, and bounded failure behavior
   before scanning the resulting image for high/critical issues.
-- CVEs inherited from the exact upstream image are reported in the CI summary
-  and allowed, preserving Nextcloud's signed core. Fixable high/critical CVEs
-  added by this image still fail CI. Matching includes the package version and
+- Any fixable high/critical CVE in an OS package fails CI, including ones
+  inherited from upstream. Other CVEs inherited from the exact upstream image
+  (for example in Nextcloud's signed core) are reported in the CI summary and
+  allowed. Fixable high/critical CVEs added by this image fail CI. Matching includes the package version and
   library location; high/critical secret findings and scanner errors also fail.
 - The daily publisher emits amd64/arm64 images, SBOM and provenance attestations.
 - Publishing runs on every push to `main` (except documentation-only changes:
