@@ -23,6 +23,8 @@ LABEL org.opencontainers.image.source="https://github.com/arumes31/nextcloud-smb
       org.opencontainers.image.licenses="MIT"
 
 # Take every Debian update, even before upstream rebuilds; CI blocks any fixable OS CVE left.
+# A new APT_REFRESH value invalidates the cached layer so the upgrade really runs.
+ARG APT_REFRESH=
 # hadolint ignore=DL3008
 RUN set -eux; \
     apt-get update; \

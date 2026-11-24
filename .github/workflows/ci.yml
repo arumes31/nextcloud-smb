@@ -64,7 +64,9 @@ jobs:
           pull: true
           load: true
           tags: nextcloud-smb:test
-          build-args: NEXTCLOUD_IMAGE=${{ steps.base.outputs.image }}
+          build-args: |
+            NEXTCLOUD_IMAGE=${{ steps.base.outputs.image }}
+            APT_REFRESH=${{ github.run_id }}-${{ github.run_attempt }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -96,6 +98,8 @@ jobs:
           cache: false
 
       - name: Reject vulnerabilities introduced by this image
+        # Explicit bash enables pipefail, so the gate's exit status survives the pipe to tee.
+        shell: bash
         env:
           BASE_IMAGE: ${{ steps.base.outputs.image }}
         run: |

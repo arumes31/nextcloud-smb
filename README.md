@@ -36,8 +36,10 @@ image instead of reusing a cached base image.
 ## Security and maintenance
 
 - The default Nextcloud base tracks the moving `nextcloud:production` tag.
-- Debian packages are not pinned: every build runs `apt-get upgrade`, so
-  Debian security fixes ship even before upstream rebuilds its image. The PECL
+- Debian packages are not pinned: the build runs `apt-get upgrade`, so Debian
+  security fixes ship even before upstream rebuilds its image. CI and publishing
+  pass a fresh `APT_REFRESH` build argument so the cached upgrade layer is never
+  reused; locally add `--build-arg APT_REFRESH="$(date +%s)"` (or `--no-cache`). The PECL
   extension release, actions, and scanners remain version or digest pinned.
 - CI verifies the extension, CLI, non-root runtime, startup with and without
   Redis session configuration, health endpoint, and bounded failure behavior
